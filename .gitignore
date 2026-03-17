@@ -1,0 +1,36 @@
+# ----------  Python  ----------
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+
+# ----------  Virtual environments  ----------
+.venv/
+venv/
+env/
+
+# ----------  IDE / editors  ----------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ----------  OS  ----------
+.DS_Store
+Thumbs.db
+
+# ----------  Credentials & secrets (NEVER commit)  ----------
+.env
+*.json
+
+# ----------  Outputs  ----------
+output/
+*.gif
+*.tif
+*.tiff
+*.npy
+*.log
