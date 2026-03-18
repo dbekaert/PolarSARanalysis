@@ -1,0 +1,52 @@
+# =============================================================================
+#  Conda/Mamba environment for Sentinel-1 Calving Pipeline
+# =============================================================================
+#
+#  This environment supports the S1-only calving-front time-lapse workflow:
+#    - calving_sites.py
+#    - coverage_catalog.py
+#    - run_calving_pipeline.sh
+#    - animate_polar_weekly.py
+#    - polar_ice_change.py
+#
+#  Create with:
+#    mamba env create -f environment-calving.yml
+#    # or: conda env create -f environment-calving.yml
+#
+#  Activate:
+#    conda activate polarcaps-calving
+#
+#  For NISAR+S1 comparison workflow, use environment-nisar-s1.yml instead.
+# =============================================================================
+
+name: polarcaps-calving
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  # Data access
+  - pystac-client>=0.9
+  - planetary-computer>=1.0
+  - odc-stac>=0.5
+  - xarray>=2024.1
+  - rioxarray>=0.22
+  - dask>=2024.1
+  - distributed>=2024.1
+  # Numerical & plotting
+  - numpy>=2.0
+  - pandas>=2.2
+  - matplotlib>=3.9
+  - scipy>=1.14
+  # Mapping
+  - cartopy>=0.23
+  - rasterio>=1.4
+  # Animation
+  - pillow>=10.4
+  - requests>=2.32
+  # Utilities
+  - python-dateutil>=2.9
+  # pip-only packages
+  - pip
+  - pip:
+    - asf_search>=12.0
