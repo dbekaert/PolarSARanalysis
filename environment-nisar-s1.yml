@@ -1,0 +1,64 @@
+# =============================================================================
+#  Conda/Mamba environment for NISAR + Sentinel-1 Comparison Pipeline
+# =============================================================================
+#
+#  This environment supports the NISAR+S1 comparison workflow:
+#    - nisar_catalog.py           (NISAR GSLC metadata from ASF DAAC)
+#    - coverage_nisar_s1.py       (same-day coverage comparison)
+#    - fetch_paired.py            (fetch paired amplitude data)
+#    - animate_paired.py          (side-by-side timeline animation)
+#    - animate_slider.py          (slider reveal animation)
+#    - animate_combined.py        (RGB/diff/flicker animation)
+#    - run_calving_NISAR_S1.sh    (end-to-end pipeline)
+#
+#  This environment is a superset of environment-calving.yml, adding:
+#    - earthaccess (NASA Earthdata authentication + NISAR data access)
+#    - h5py (remote HDF5 reading for NISAR GSLC)
+#
+#  Create with:
+#    mamba env create -f environment-nisar-s1.yml
+#    # or: conda env create -f environment-nisar-s1.yml
+#
+#  Activate:
+#    conda activate polarcaps-nisar
+#
+#  NASA Earthdata Login:
+#    Before first use, authenticate with:
+#      python -c "import earthaccess; earthaccess.login()"
+#    This stores credentials in ~/.netrc for subsequent runs.
+# =============================================================================
+
+name: polarcaps-nisar
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  # Data access (S1 via Planetary Computer)
+  - pystac-client>=0.9
+  - planetary-computer>=1.0
+  - odc-stac>=0.5
+  - xarray>=2024.1
+  - rioxarray>=0.22
+  - dask>=2024.1
+  - distributed>=2024.1
+  # NISAR data access (NASA Earthdata + remote HDF5)
+  - earthaccess>=0.16
+  - h5py>=3.11
+  # Numerical & plotting
+  - numpy>=2.0
+  - pandas>=2.2
+  - matplotlib>=3.9
+  - scipy>=1.14
+  # Mapping
+  - cartopy>=0.23
+  - rasterio>=1.4
+  # Animation
+  - pillow>=10.4
+  - requests>=2.32
+  # Utilities
+  - python-dateutil>=2.9
+  # pip-only packages
+  - pip
+  - pip:
+    - asf_search>=12.0

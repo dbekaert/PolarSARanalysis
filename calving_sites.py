@@ -401,7 +401,7 @@ def fetch_site(site_key, start_date, end_date, out_dir):
     geobox, grid_bbox = _site_geobox(site_key)
     bbox_ll = _search_bbox_lonlat(site_key)
 
-    cache = Path(out_dir) / "calving_cache" / site_key
+    cache = Path(out_dir) / "calving" / "cache" / site_key
     cache.mkdir(parents=True, exist_ok=True)
 
     # Load or create manifest
@@ -417,7 +417,7 @@ def fetch_site(site_key, start_date, end_date, out_dir):
         }
 
     # Load catalog selections if available
-    catalog_path = Path(out_dir) / f"{site_key}_catalog.json"
+    catalog_path = Path(out_dir) / "calving" / "catalogs" / f"{site_key}_catalog.json"
     catalog_selections = {}
     if catalog_path.exists():
         cat = json.loads(catalog_path.read_text())
@@ -1176,7 +1176,7 @@ def _render_timeline_bar(width_px, all_dates, current_idx, _ctx=None):
 def _load_site_data(site_key, out_dir, min_coverage=0.0):
     """Load cached snapshots for a site.  Returns (grid_bbox, snap_lookup, ref_shape)."""
     cfg = SITES[site_key]
-    cache = Path(out_dir) / "calving_cache" / site_key
+    cache = Path(out_dir) / "calving" / "cache" / site_key
     manifest_path = cache / "manifest.json"
     if not manifest_path.exists():
         return None, {}, None
@@ -1243,7 +1243,7 @@ def render_combined(site_keys, out_dir, cmap_name="gray", fps=4,
     site_info = {}
     for sk in site_keys:
         cfg = SITES[sk]
-        cache = Path(out_dir) / "calving_cache" / sk
+        cache = Path(out_dir) / "calving" / "cache" / sk
         manifest_path = cache / "manifest.json"
         if not manifest_path.exists():
             print(f"  [{cfg['label']}] No cached data — skipping.")
@@ -1387,7 +1387,7 @@ def render_combined(site_keys, out_dir, cmap_name="gray", fps=4,
             row_panel_sizes.append(sized)
             row_heights.append(max(h for (_, h) in sized))
 
-    frames_dir = Path(out_dir) / "calving_frames" / "combined"
+    frames_dir = Path(out_dir) / "calving" / "frames" / "combined"
     frames_dir.mkdir(parents=True, exist_ok=True)
 
     # =================================================================
@@ -1536,7 +1536,7 @@ def render_combined(site_keys, out_dir, cmap_name="gray", fps=4,
         return
 
     # Assemble GIF by streaming PNGs from disk (low memory)
-    gif_dir = Path(out_dir) / "calving_animations"
+    gif_dir = Path(out_dir) / "calving" / "animations"
     gif_dir.mkdir(parents=True, exist_ok=True)
     site_tag = "_".join(site_info.keys())
     gif_path = gif_dir / f"combined_{site_tag}_timelapse.gif"
@@ -1565,7 +1565,7 @@ def render_site(site_key, out_dir, cmap_name="gray", fps=4,
         render_res = DEFAULT_RENDER_RES
     cfg = SITES[site_key]
     label = cfg["label"]
-    cache = Path(out_dir) / "calving_cache" / site_key
+    cache = Path(out_dir) / "calving" / "cache" / site_key
     manifest_path = cache / "manifest.json"
 
     if not manifest_path.exists():
@@ -1604,7 +1604,7 @@ def render_site(site_key, out_dir, cmap_name="gray", fps=4,
 
     print(f"\n  [{label}] Rendering {len(snapshots)} monthly snapshots …")
 
-    frames_dir = Path(out_dir) / "calving_frames" / site_key
+    frames_dir = Path(out_dir) / "calving" / "frames" / site_key
     frames_dir.mkdir(parents=True, exist_ok=True)
 
     # Downsample factor for rendering
@@ -1705,7 +1705,7 @@ def render_site(site_key, out_dir, cmap_name="gray", fps=4,
         return
 
     # Animated GIF (streamed from disk PNGs)
-    gif_dir = Path(out_dir) / "calving_animations"
+    gif_dir = Path(out_dir) / "calving" / "animations"
     gif_dir.mkdir(parents=True, exist_ok=True)
     gif_path = gif_dir / f"{site_key}_timelapse.gif"
     _assemble_gif_from_pngs(rendered_paths, gif_path, fps)
@@ -1782,7 +1782,7 @@ def main():
     if args.sync and do_render and len(sites) > 1:
         all_site_months = set()
         for sk in sites:
-            mp = Path(out_dir) / "calving_cache" / sk / "manifest.json"
+            mp = Path(out_dir) / "calving" / "cache" / sk / "manifest.json"
             if mp.exists():
                 m = json.loads(mp.read_text())
                 for s in m.get("snapshots", []):

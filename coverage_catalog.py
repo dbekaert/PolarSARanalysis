@@ -213,13 +213,13 @@ def build_catalog(site_key, start_date="2015-01-01", end_date="2026-03-14"):
         "selected_days": selected,
     }
 
-    os.makedirs("output", exist_ok=True)
-    json_path = f"output/{site_key}_catalog.json"
+    os.makedirs("output/calving/catalogs", exist_ok=True)
+    json_path = f"output/calving/catalogs/{site_key}_catalog.json"
     with open(json_path, "w") as f:
         json.dump(catalog_data, f, indent=2)
 
     # ---- Human-readable text ----
-    txt_path = f"output/{site_key}_catalog.txt"
+    txt_path = f"output/calving/catalogs/{site_key}_catalog.txt"
     with open(txt_path, "w") as f:
         def pr(s=""):
             print(s)

@@ -15,12 +15,22 @@ GEE_polarcaps/
 ├── README.md                    ← you are here
 ├── requirements.txt             ← pip dependencies (flexible)
 ├── requirements-lock.txt        ← pinned environment (exact replication)
+├── environment-calving.yml      ← conda/mamba env for S1 calving pipeline
+├── environment-nisar-s1.yml     ← conda/mamba env for NISAR+S1 comparison
 ├── pyproject.toml               ← project metadata
 ├── .gitignore
 │
 ├── calving_sites.py             ← calving-front time-lapse pipeline
 ├── coverage_catalog.py          ← per-track per-day coverage catalog
 ├── run_calving_pipeline.sh      ← end-to-end calving pipeline script
+│
+├── nisar_catalog.py             ← NISAR GSLC metadata catalog
+├── coverage_nisar_s1.py         ← S1/NISAR same-day coverage comparison
+├── fetch_paired.py              ← fetch paired S1+NISAR amplitude data
+├── animate_paired.py            ← side-by-side S1/NISAR timeline animation
+├── animate_slider.py            ← slider reveal animation (single date)
+├── animate_combined.py          ← RGB/diff/flicker animation (single date)
+├── run_calving_NISAR_S1.sh      ← end-to-end NISAR+S1 comparison pipeline
 │
 ├── polar_ice_change.py          ← ice-extent time-series analysis
 ├── animate_polar_weekly.py      ← weekly amplitude animation (GIF)
@@ -37,12 +47,19 @@ GEE_polarcaps/
 ```bash
 cd ~/Software/GEE_polarcaps
 
-# Create a virtual environment (Python 3.12 recommended)
+# ===== Option A: pip (venv) =====
 python3 -m venv .venv
 source .venv/bin/activate
-
-# Install dependencies (exact versions)
 pip install -r requirements-lock.txt
+
+# ===== Option B: conda/mamba =====
+# For S1 calving pipeline only:
+mamba env create -f environment-calving.yml
+conda activate polarcaps-calving
+
+# For NISAR+S1 comparison (includes earthaccess, h5py):
+mamba env create -f environment-nisar-s1.yml
+conda activate polarcaps-nisar
 
 # --- Calving-front time-lapse (main workflow) ---
 # Run the full pipeline (catalog → fetch → render → compress):
@@ -53,12 +70,15 @@ python coverage_catalog.py jakobshavn --start 2015-01-01 --end 2026-03-31
 python calving_sites.py --fetch --site jakobshavn
 python calving_sites.py --render --site jakobshavn
 
+# --- NISAR + S1 comparison ---
+bash run_calving_NISAR_S1.sh
+
 # --- Polar-wide analyses ---
 python polar_ice_change.py
 python animate_polar_weekly.py
 ```
 
-That's it — no sign-up, no tokens, no auth.
+That's it — no sign-up, no tokens, no auth (except Earthdata login for NISAR).
 
 ---
 
@@ -184,6 +204,22 @@ python calving_sites.py --render --site jakobshavn petermann --sync --render_res
   + shared timeline bar    + attribution strip
 ```
 
+**Output structure:**
+```
+output/calving/
+├── catalogs/
+│   ├── <site>_catalog.json      # STAC item metadata
+│   └── <site>_catalog.txt       # human-readable catalog
+├── cache/<site>/
+│   ├── manifest.json            # metadata for all frames
+│   └── <YYYY-MM>_<track>.npy    # calibrated dB arrays
+├── frames/<site>/
+│   └── <YYYY-MM>_<track>.png    # rendered frames
+└── animations/
+    ├── <site>_calving.gif       # individual site GIFs
+    └── combined_calving.gif     # multi-panel grid GIF
+```
+
 
 ### 4.2  `animate_polar_weekly.py` – Weekly Polar Amplitude Animation
 
@@ -263,6 +299,85 @@ Thin wrapper around `pystac-client` + `planetary-computer`:
 - `get_catalog()` — returns a signed STAC client
 - `search_s1_grd()` — search all modes (or filter by EW/IW)
 - `get_copol_band()` — returns `'hh'` or `'vv'` for a given item
+
+
+### 4.5  NISAR + Sentinel-1 Comparison Pipeline
+
+Side-by-side comparison of **NISAR L-band** and **Sentinel-1 C-band** SAR
+backscatter over glacier calving fronts.  This pipeline visualises how
+different radar wavelengths (23 cm vs 5.6 cm) respond to ice structure.
+
+**Prerequisites (additional):**
+- NASA Earthdata login (for NISAR GSLC access via `earthaccess`)
+- `h5py` for reading remote HDF5 files
+
+```bash
+# Full pipeline
+bash run_calving_NISAR_S1.sh
+
+# Step-by-step:
+# 1. Build NISAR GSLC catalog from ASF DAAC
+python nisar_catalog.py jakobshavn --start 2024-06-01 --end 2026-03-31
+
+# 2. Build combined S1 + NISAR coverage report
+python coverage_nisar_s1.py jakobshavn
+
+# 3. Fetch paired amplitude data for same-day acquisitions
+python fetch_paired.py jakobshavn --min-nisar-coverage 80
+
+# 4. Create animations
+python animate_paired.py --site jakobshavn --fps 1    # timeline
+python animate_slider.py --site jakobshavn            # slider reveal
+python animate_combined.py --site jakobshavn          # RGB/diff/flicker
+```
+
+**Data selection criteria:**
+- NISAR: 77 MHz science-mode bandwidth, single descending track (T170D)
+- S1: Same-day acquisitions with ≥100% AOI coverage
+- Both: Resampled to 100 m resolution, stored as calibrated dB
+
+**Timeline animation layout:**
+```
+┌─────────────────────────────────────────────────┐
+│             Jakobshavn Glacier                  │
+├───────────────────────┬────────────────🌐───────┤
+│                       │                         │
+│   Sentinel-1 (C)      │      NISAR (L)         │
+│   + scale bar         │                         │
+│   + colorbar          │      + colorbar         │
+│                       │                         │
+├───────────────────────┴─────────────────────────┤
+│  ●──────○○○○○○○   Oct 2025 → Jan 2026          │
+│  Oct   Nov   Dec   Jan                          │
+└─────────────────────────────────────────────────┘
+  + "Image analysis by David Bekaert" attribution
+```
+
+**Output structure:**
+```
+output/nisar_s1/
+├── catalogs/
+│   ├── <site>_nisar_catalog.json    # NISAR GSLC metadata
+│   ├── <site>_nisar_catalog.txt     # human-readable catalog
+│   └── <site>_coverage_report.txt   # S1+NISAR coverage summary
+├── cache/<site>/
+│   ├── manifest.json                # metadata for all pairs
+│   ├── <site>_<date>_s1.npy         # Sentinel-1 amplitude (dB)
+│   └── <site>_<date>_nisar.npy      # NISAR amplitude (dB)
+└── animations/<site>/
+    ├── <site>_s1_nisar_comparison.gif  # timeline animation
+    ├── <site>_<date>_slider.gif     # slider reveal
+    └── <site>_<date>_combined.gif   # RGB/diff/flicker
+```
+
+| Script | Description |
+|--------|-------------|
+| `nisar_catalog.py` | Query ASF DAAC for NISAR GSLC metadata |
+| `coverage_nisar_s1.py` | Build coverage report for S1+NISAR same-day pairs |
+| `fetch_paired.py` | Fetch and cache amplitude arrays for valid pairs |
+| `animate_paired.py` | Side-by-side timeline animation with globe |
+| `animate_slider.py` | Interactive slider reveal between S1 and NISAR |
+| `animate_combined.py` | RGB composite, difference, and flicker views |
 
 ---
 

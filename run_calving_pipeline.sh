@@ -28,13 +28,13 @@
 #    (Others defined but not yet animated: ellesmere, larsen_c, ross)
 #
 #  OUTPUT STRUCTURE
-#    output/
-#      <site>_catalog.json      – machine-readable coverage catalog
-#      <site>_catalog.txt       – human-readable table (◄ = selected)
-#      calving_cache/<site>/    – cached .npy SAR arrays + manifest
-#      calving_frames/<site>/   – per-site rendered PNG frames
-#      calving_frames/combined/ – composite PNG frames (all sites)
-#      calving_animations/      – final animated GIFs
+#    output/calving/
+#      catalogs/<site>_catalog.json  – machine-readable coverage catalog
+#      catalogs/<site>_catalog.txt   – human-readable table (◄ = selected)
+#      cache/<site>/                 – cached .npy SAR arrays + manifest
+#      frames/<site>/                – per-site rendered PNG frames
+#      frames/combined/              – composite PNG frames (all sites)
+#      animations/                   – final animated GIFs
 #
 #  RENDERING DETAILS
 #    • SAR data fetched at native 100 m, rendered at 200 m (area-mean

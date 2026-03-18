@@ -19,6 +19,13 @@ rasterio>=1.3
 # Scientific
 scipy>=1.11
 
+# ASF DAAC search (NISAR)
+asf_search>=12.0
+
+# NISAR GSLC remote fetch
+earthaccess>=0.16
+h5py>=3.9
+
 # Animation
 Pillow>=10.0
 requests>=2.28
